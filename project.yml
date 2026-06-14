@@ -1,0 +1,64 @@
+name: VaultyPro
+options:
+  bundleIdPrefix: com.vaultypro
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    DEVELOPMENT_TEAM: "23W7Z8WZ4F"
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    GENERATE_INFOPLIST_FILE: YES
+    TARGETED_DEVICE_FAMILY: "1"
+
+packages:
+  justhtml:
+    url: https://github.com/kylehowells/swift-justhtml
+    exactVersion: 0.4.6
+
+targets:
+  VaultyPro:
+    type: application
+    platform: iOS
+    sources:
+      - path: VaultyPro
+      - path: Shared
+    dependencies:
+      - package: justhtml
+      - target: ShareExtension
+        embed: true
+    settings:
+      base:
+        TARGETED_DEVICE_FAMILY: "1"
+        PRODUCT_BUNDLE_IDENTIFIER: com.vaultypro.app
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_CFBundleDisplayName: VaultyPro
+        INFOPLIST_KEY_NSUserTrackingUsageDescription: "VaultyPro does not track you. This is only present to satisfy App Store review."
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Allow VaultyPro to save shared images you choose."
+        CODE_SIGN_ENTITLEMENTS: VaultyPro/VaultyPro.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+  ShareExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShareExtension
+      - path: Shared
+    dependencies:
+      - package: justhtml
+    settings:
+      base:
+        TARGETED_DEVICE_FAMILY: "1"
+        PRODUCT_BUNDLE_IDENTIFIER: com.vaultypro.app.ShareExtension
+        CODE_SIGN_ENTITLEMENTS: ShareExtension/ShareExtension.entitlements
+        INFOPLIST_FILE: ShareExtension/Info.plist

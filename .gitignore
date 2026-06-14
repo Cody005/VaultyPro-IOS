@@ -1,0 +1,46 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode build artifacts & derived data
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Xcode user-specific state (window layout, breakpoints, cursor position)
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# CocoaPods / Carthage (not used here, kept for safety)
+Pods/
+Carthage/Build/
+
+# Fastlane (if added later)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Secrets — never commit these
+*.p12
+*.cer
+*.pem
+*.key
+*.mobileprovision
+*.certSigningRequest
+.env
+.env.*
+Secrets.xcconfig
+GoogleService-Info.plist

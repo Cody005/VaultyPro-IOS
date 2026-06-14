@@ -1,0 +1,38 @@
+VaultyPro is your universal content inbox — the beautiful, native way to save anything worth coming back to.
+
+See an article, video, post, recipe, or thread you want to keep? Just tap Share → VaultyPro from any app. VaultyPro instantly captures the link, title, thumbnail, and description, and tucks it neatly into your vault. No more 47 open tabs, screenshots you'll never find, or links buried in your notes app.
+
+SAVE FROM ANYWHERE
+Share to VaultyPro from Safari, Instagram, X, TikTok, YouTube, Reddit, newsletters, and virtually any other app. URLs, text, and images are all welcome. YouTube links automatically pull in video thumbnails and titles.
+
+A HOME FOR EVERY TYPE OF CONTENT
+Articles, videos, audio, images, links, and quick notes each get their own type badge and tailored view — an immersive reader for articles, an inline player for videos, pinch-to-zoom for images, and more.
+
+ORGANIZE YOUR WAY
+Build collections like Read Later, Recipes, or Inspiration. Smart collections (Unread, Videos, Articles, Saved Today, Favorites) keep everything sorted automatically. Tag anything and find it again in seconds.
+
+A READER YOU'LL ACTUALLY ENJOY
+Distraction-free article reading with adjustable text size, font, line spacing, and white/sepia/dark backgrounds. Highlight key passages in four colors and add your own notes.
+
+DESIGNED FOR iOS 26
+Crafted with SwiftUI and the new Liquid Glass design language. A warm, premium navy-and-amber aesthetic, fluid animations, and thoughtful empty states on every screen.
+
+SYNCS ACROSS YOUR DEVICES
+Your vault stays in sync with iCloud, so everything you save on your iPhone is right there on your iPad.
+
+IMPORT WHAT YOU ALREADY HAVE
+Bring your library over from Raindrop.io, Instapaper, or Pinboard — and export anytime to JSON or CSV. Your data is yours.
+
+VAULTYPRO FREE
+- Save up to 50 items
+- Up to 3 collections
+- Beautiful reading & viewing
+
+VAULTYPRO PRO
+- Unlimited saves and collections
+- Full-text search across everything
+- Highlights with color + export
+- Import & export
+- Custom app icons
+
+Start building your vault today. Save it now, enjoy it later — with VaultyPro.
