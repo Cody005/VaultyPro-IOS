@@ -67,12 +67,12 @@ final class HomeViewModel {
     }
 
     func savedToday(_ items: [StashItem]) -> Int {
-        items.filter { Calendar.current.isDateInToday($0.savedAt) }.count
+        items.filter { Calendar.current.isDateInToday($0.savedAt) && !$0.isInVault }.count
     }
 
     func filtered(_ items: [StashItem]) -> [StashItem] {
         items
-            .filter { !$0.isArchived && filter.matches($0) }
+            .filter { !$0.isArchived && !$0.isInVault && filter.matches($0) }
             .sorted { $0.savedAt > $1.savedAt }
     }
 }

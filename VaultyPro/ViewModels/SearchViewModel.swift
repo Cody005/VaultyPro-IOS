@@ -31,7 +31,7 @@ final class SearchViewModel {
     func results(from items: [StashItem]) -> [StashItem] {
         let q = query.trimmingCharacters(in: .whitespaces).lowercased()
         return items.filter { item in
-            guard !item.isArchived else { return false }
+            guard !item.isArchived, !item.isInVault else { return false }
             if let typeFilter, item.contentType != typeFilter { return false }
             if unreadOnly && item.isRead { return false }
             guard !q.isEmpty else { return true }

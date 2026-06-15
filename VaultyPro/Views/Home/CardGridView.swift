@@ -5,6 +5,7 @@ import SwiftData
 struct CardGridView: View {
     let items: [StashItem]
     var onAddToCollection: (StashItem) -> Void
+    var onMoveToVault: ((StashItem) -> Void)? = nil
 
     @Environment(\.modelContext) private var context
 
@@ -22,7 +23,10 @@ struct CardGridView: View {
                     }
                     .buttonStyle(CardButtonStyle())
                 }
-                .contextMenu { ItemContextMenu(item: item, onAddToCollection: onAddToCollection) }
+                .contextMenu {
+                    ItemContextMenu(item: item, onAddToCollection: onAddToCollection,
+                                    onMoveToVault: onMoveToVault)
+                }
             }
         }
         .padding(.horizontal, AppMetrics.hPadding)
@@ -112,6 +116,7 @@ struct SwipeableCard<Content: View>: View {
 struct ItemContextMenu: View {
     let item: StashItem
     var onAddToCollection: (StashItem) -> Void
+    var onMoveToVault: ((StashItem) -> Void)? = nil
     @Environment(\.modelContext) private var context
     @Environment(UndoCenter.self) private var undo
 
@@ -126,6 +131,11 @@ struct ItemContextMenu: View {
         }
         Button { onAddToCollection(item) } label: {
             Label("Add to Collection", systemImage: "folder.badge.plus")
+        }
+        if let onMoveToVault {
+            Button { onMoveToVault(item) } label: {
+                Label("Move to Vault", systemImage: "lock.fill")
+            }
         }
         Button { ItemActions.archive(item, in: context) } label: {
             Label("Archive", systemImage: "archivebox")

@@ -23,6 +23,7 @@ final class StashItem {
     var readingProgress: Double = 0.0                       // 0.0–1.0
     var estimatedReadTime: Int?                             // minutes
     var platformRaw: String?                                // instagram, twitter, youtube...
+    var isInVault: Bool = false                             // hidden from inbox/search when true
 
     @Relationship(deleteRule: .cascade, inverse: \Highlight.item)
     var highlights: [Highlight]? = []

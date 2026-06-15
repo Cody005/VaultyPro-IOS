@@ -6,7 +6,7 @@ struct CollectionPickerSheet: View {
     let item: StashItem
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
-    @Query(filter: #Predicate<Collection> { !$0.isSmart },
+    @Query(filter: #Predicate<Collection> { !$0.isSmart && !$0.isVault },
            sort: \Collection.sortOrder) private var collections: [Collection]
 
     @State private var newName = ""

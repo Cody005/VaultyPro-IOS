@@ -9,15 +9,17 @@ struct CollectionDetailView: View {
 
     private var title: String {
         switch target {
-        case .smart(let s): return s.name
-        case .user(let c): return c.name
+        case .smart(let s):  return s.name
+        case .user(let c):   return c.name
+        case .vault(let c):  return c.name
         }
     }
 
     private var emoji: String {
         switch target {
-        case .smart(let s): return s.emoji
-        case .user(let c): return c.emoji
+        case .smart(let s):  return s.emoji
+        case .user(let c):   return c.emoji
+        case .vault(let c):  return c.emoji
         }
     }
 
@@ -26,7 +28,9 @@ struct CollectionDetailView: View {
         case .smart(let smart):
             return allItems.filter { smart.matches($0) }
         case .user(let collection):
-            return (collection.items ?? []).sorted { $0.savedAt > $1.savedAt }
+            return (collection.items ?? []).filter { !$0.isInVault }.sorted { $0.savedAt > $1.savedAt }
+        case .vault(let collection):
+            return (collection.items ?? []).filter { $0.isInVault }.sorted { $0.savedAt > $1.savedAt }
         }
     }
 

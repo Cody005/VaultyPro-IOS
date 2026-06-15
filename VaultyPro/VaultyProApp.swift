@@ -6,6 +6,8 @@ struct VaultyProApp: App {
     @AppStorage("appearancePreference") private var appearanceRaw = AppearanceMode.system.rawValue
     @State private var pro = ProStatusManager()
     @State private var undo = UndoCenter()
+    @State private var vault = VaultManager()
+    @Environment(\.scenePhase) private var scenePhase
     private let container = Persistence.makeContainer()
 
     init() {
@@ -19,9 +21,19 @@ struct VaultyProApp: App {
             ContentView()
                 .environment(pro)
                 .environment(undo)
+                .environment(vault)
                 .tint(Color.stashAmber)
                 .preferredColorScheme(AppearanceMode(rawValue: appearanceRaw)?.colorScheme)
+                .modelContainer(container)
+                .task { bootstrapVault() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .background { vault.lock() }
+                }
         }
-        .modelContainer(container)
+    }
+
+    private func bootstrapVault() {
+        let ctx = container.mainContext
+        vault.ensureVaultCollection(in: ctx)
     }
 }

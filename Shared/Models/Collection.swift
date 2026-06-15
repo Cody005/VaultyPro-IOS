@@ -10,6 +10,7 @@ final class Collection {
     var createdAt: Date = Date()
     var isSmart: Bool = false
     var smartFilter: String?            // identifier for smart collections
+    var isVault: Bool = false           // true for the single protected Vault collection
     var sortOrder: Int = 0
 
     @Relationship(deleteRule: .nullify)
@@ -23,6 +24,7 @@ final class Collection {
         createdAt: Date = Date(),
         isSmart: Bool = false,
         smartFilter: String? = nil,
+        isVault: Bool = false,
         sortOrder: Int = 0
     ) {
         self.id = id
@@ -32,6 +34,7 @@ final class Collection {
         self.createdAt = createdAt
         self.isSmart = isSmart
         self.smartFilter = smartFilter
+        self.isVault = isVault
         self.sortOrder = sortOrder
         self.items = []
     }
@@ -86,7 +89,7 @@ enum SmartCollection: String, CaseIterable, Identifiable {
     }
 
     func matches(_ item: StashItem) -> Bool {
-        guard !item.isArchived else { return false }
+        guard !item.isArchived, !item.isInVault else { return false }
         switch self {
         case .unread:    return !item.isRead
         case .videos:    return item.contentType == .video

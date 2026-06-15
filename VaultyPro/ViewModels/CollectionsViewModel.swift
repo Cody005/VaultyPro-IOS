@@ -31,11 +31,13 @@ final class CollectionsViewModel {
     }
 
     func delete(_ collection: Collection, in context: ModelContext) {
+        guard !collection.isVault else { return }
         context.delete(collection)
         try? context.save()
     }
 
     func beginRename(_ collection: Collection) {
+        guard !collection.isVault else { return }
         renameTarget = collection
         draftName = collection.name
         draftEmoji = collection.emoji

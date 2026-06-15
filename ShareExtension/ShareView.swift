@@ -275,6 +275,7 @@ struct ShareSheetView: View {
                              contentType: .image, tags: tags)
         }
         item.collection = selectedCollection
+        item.isInVault = (selectedCollection?.isVault == true)
         context.insert(item)
         try? context.save()
         close()

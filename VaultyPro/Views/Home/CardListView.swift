@@ -5,6 +5,7 @@ import SwiftData
 struct CardListView: View {
     let items: [StashItem]
     var onAddToCollection: (StashItem) -> Void
+    var onMoveToVault: ((StashItem) -> Void)? = nil
 
     @Environment(\.modelContext) private var context
 
@@ -17,7 +18,10 @@ struct CardListView: View {
                     }
                     .buttonStyle(CardButtonStyle())
                 }
-                .contextMenu { ItemContextMenu(item: item, onAddToCollection: onAddToCollection) }
+                .contextMenu {
+                    ItemContextMenu(item: item, onAddToCollection: onAddToCollection,
+                                    onMoveToVault: onMoveToVault)
+                }
             }
         }
         .padding(.horizontal, AppMetrics.hPadding)

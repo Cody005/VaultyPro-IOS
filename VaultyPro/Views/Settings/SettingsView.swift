@@ -18,7 +18,7 @@ enum AppearanceMode: String, CaseIterable, Identifiable {
 struct SettingsView: View {
     @Environment(\.modelContext) private var context
     @Environment(ProStatusManager.self) private var pro
-    @Query private var items: [StashItem]
+    @Query(filter: #Predicate<StashItem> { !$0.isInVault }) private var items: [StashItem]
     @State private var sync = CloudKitSyncMonitor()
 
     @AppStorage("appearancePreference") private var appearanceRaw = AppearanceMode.system.rawValue
@@ -302,7 +302,7 @@ struct SettingsView: View {
 struct ArchiveView: View {
     @Environment(\.modelContext) private var context
     @Environment(UndoCenter.self) private var undo
-    @Query(filter: #Predicate<StashItem> { $0.isArchived },
+    @Query(filter: #Predicate<StashItem> { $0.isArchived && !$0.isInVault },
            sort: \StashItem.savedAt, order: .reverse)
     private var archived: [StashItem]
 

@@ -37,6 +37,7 @@ enum ItemActions {
 
     static func move(_ item: StashItem, to collection: Collection?, in context: ModelContext) {
         item.collection = collection
+        if collection?.isVault != true { item.isInVault = false }
         save(context)
     }
 

@@ -78,4 +78,5 @@ struct UndoToast: View {
         .modelContainer(Persistence.makeContainer(inMemory: true))
         .environment(ProStatusManager())
         .environment(UndoCenter())
+        .environment(VaultManager())
 }

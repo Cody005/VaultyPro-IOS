@@ -5,21 +5,27 @@ import SwiftData
 enum CollectionTarget: Hashable {
     case smart(SmartCollection)
     case user(Collection)
+    case vault(Collection)
 }
 
 struct CollectionsView: View {
     @Environment(\.modelContext) private var context
+    @Environment(VaultManager.self) private var vault
     @Query(sort: \StashItem.savedAt, order: .reverse) private var items: [StashItem]
-    @Query(filter: #Predicate<Collection> { !$0.isSmart },
+    @Query(filter: #Predicate<Collection> { !$0.isSmart && !$0.isVault },
            sort: \Collection.sortOrder) private var collections: [Collection]
+    @Query(filter: #Predicate<Collection> { $0.isVault }) private var vaultCollections: [Collection]
     @Environment(ProStatusManager.self) private var pro
     @State private var model = CollectionsViewModel()
     @State private var showPaywall = false
+    @State private var showVaultSetup = false
+    @State private var showVaultUnlock = false
+    @State private var navPath = NavigationPath()
 
     private let grid = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navPath) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     ScreenHeader("Collections") {
@@ -34,6 +40,7 @@ struct CollectionsView: View {
                         }
                     }
                     smartSection
+                    vaultSection
                     userSection
                 }
                 .padding(.top, 4)
@@ -42,8 +49,19 @@ struct CollectionsView: View {
             .background(AppBackground())
             .scrollIndicators(.hidden)
             .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(for: CollectionTarget.self) { CollectionDetailView(target: $0) }
+            .navigationDestination(for: CollectionTarget.self) { target in
+                switch target {
+                case .smart, .user: CollectionDetailView(target: target)
+                case .vault(let c): VaultContentView(vaultCollection: c)
+                }
+            }
             .navigationDestination(for: StashItem.self) { ItemDetailView(item: $0) }
+            .sheet(isPresented: $showVaultSetup, onDismiss: openVaultIfUnlocked) {
+                VaultSetupView()
+            }
+            .sheet(isPresented: $showVaultUnlock, onDismiss: openVaultIfUnlocked) {
+                VaultUnlockView()
+            }
             .sheet(isPresented: $model.showingNewCollection) {
                 CollectionEditorSheet(model: model, isRename: false) {
                     model.createCollection(in: context, existingCount: collections.count)
@@ -57,6 +75,60 @@ struct CollectionsView: View {
             .sheet(isPresented: $showPaywall) { PaywallView() }
         }
     }
+
+    // MARK: - Vault section
+
+    @ViewBuilder
+    private var vaultSection: some View {
+        if let vaultCol = vaultCollections.first {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Vault")
+                    .font(AppFont.sectionHeader())
+                    .padding(.horizontal, AppMetrics.hPadding)
+
+                LazyVGrid(columns: grid, spacing: 14) {
+                    vaultCard(vaultCol)
+                }
+                .padding(.horizontal, AppMetrics.hPadding)
+            }
+        }
+    }
+
+    /// Pushes the vault content once the setup/unlock sheet has fully dismissed.
+    /// Doing this in `onDismiss` (rather than racing the sheet close) prevents the
+    /// navigation from being dropped while the sheet is mid-dismissal.
+    private func openVaultIfUnlocked() {
+        guard vault.vaultState == .unlocked, let v = vaultCollections.first else { return }
+        navPath.append(CollectionTarget.vault(v))
+    }
+
+    @ViewBuilder
+    private func vaultCard(_ collection: Collection) -> some View {
+        let cardLabel = VaultCollectionCardView(
+            isLocked: vault.vaultState != .unlocked,
+            isSetup: vault.vaultState != .notSetup,
+            itemCount: collection.itemCount
+        )
+        if vault.vaultState == .unlocked {
+            NavigationLink(value: CollectionTarget.vault(collection)) {
+                cardLabel
+            }
+            .buttonStyle(CardButtonStyle())
+        } else {
+            Button { handleVaultTap() } label: { cardLabel }
+                .buttonStyle(CardButtonStyle())
+        }
+    }
+
+    private func handleVaultTap() {
+        switch vault.vaultState {
+        case .notSetup: showVaultSetup = true
+        case .locked:   showVaultUnlock = true
+        case .unlocked: break
+        }
+    }
+
+    // MARK: - Smart section
 
     private var smartSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -173,5 +245,57 @@ struct CollectionCardView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Vault collection card
+
+struct VaultCollectionCardView: View {
+    let isLocked: Bool
+    let isSetup: Bool
+    let itemCount: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(hex: "#4A1D96"), Color(hex: "#2D1B69")],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+                Image(systemName: isLocked ? "lock.fill" : "lock.open.fill")
+                    .font(.system(size: 40, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.95))
+            }
+            .frame(height: 110)
+            .frame(maxWidth: .infinity)
+            .clipped()
+            .overlay(alignment: .topTrailing) {
+                if !isSetup {
+                    Text("Set up")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.stashNavy)
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        .background(Color.stashAmber, in: Capsule())
+                        .padding(8)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text("🔒")
+                    Text("Vault").font(.system(size: 15, weight: .semibold)).lineLimit(1)
+                }
+                Text(isLocked
+                     ? (isSetup ? "Tap to unlock" : "Tap to set up")
+                     : "\(itemCount) private item\(itemCount == 1 ? "" : "s")")
+                    .font(AppFont.metadata()).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+        }
+        .background(Color.stashCardSurface)
+        .clipShape(RoundedRectangle(cornerRadius: AppMetrics.cornerRadius, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: AppMetrics.cornerRadius).strokeBorder(Color.primary.opacity(0.05)))
+        .shadow(color: .black.opacity(0.1), radius: 10, y: 3)
     }
 }
