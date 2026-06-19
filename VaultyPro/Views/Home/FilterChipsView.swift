@@ -21,6 +21,7 @@ struct FilterChipsView: View {
     private func chip(_ filter: HomeFilter) -> some View {
         let selected = selection == filter
         let tint = filter.tint
+        let chipRadius: CGFloat = 10
         return Button {
             withAnimation(.snappy(duration: 0.28)) { selection = filter }
         } label: {
@@ -37,22 +38,24 @@ struct FilterChipsView: View {
                         .foregroundStyle(selected ? Color.stashNavy.opacity(0.75) : .secondary)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(selected ? Color.stashNavy.opacity(0.16) : tint.opacity(0.18),
-                                    in: Capsule())
+                                    in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
             }
             .padding(.horizontal, 15)
             .frame(height: 40)
             .background {
                 if selected {
-                    Capsule()
+                    RoundedRectangle(cornerRadius: chipRadius, style: .continuous)
                         .fill(tint.gradient)
                         .matchedGeometryEffect(id: "chip", in: ns)
                 } else {
-                    Capsule().fill(Color.stashCardSurface)
-                        .overlay(Capsule().strokeBorder(Color.stashMuted.opacity(0.22)))
+                    RoundedRectangle(cornerRadius: chipRadius, style: .continuous)
+                        .fill(Color.stashCardSurface)
+                        .overlay(RoundedRectangle(cornerRadius: chipRadius, style: .continuous)
+                            .strokeBorder(Color.stashMuted.opacity(0.22)))
                 }
             }
-            .contentShape(Capsule())
+            .contentShape(RoundedRectangle(cornerRadius: chipRadius, style: .continuous))
         }
         .buttonStyle(.plain)
     }

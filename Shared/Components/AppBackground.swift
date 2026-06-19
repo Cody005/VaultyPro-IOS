@@ -17,20 +17,13 @@ struct AppBackground: View {
                 endPoint: .bottom
             )
 
-            // Warm amber glow in the upper-right.
+            // Single cohesive cool glow in the upper-right, tinted to match the navy
+            // theme (no warm/amber clash). Kept soft so it reads as ambient depth.
             RadialGradient(
-                colors: [Color.stashAmber.opacity(scheme == .dark ? 0.13 : 0.09), .clear],
-                center: .init(x: 0.92, y: 0.0),
+                colors: [Color(hex: "#3A7CA5").opacity(scheme == .dark ? 0.14 : 0.06), .clear],
+                center: .init(x: 0.92, y: 0.02),
                 startRadius: 0,
-                endRadius: 380
-            )
-
-            // Cool counter-glow in the lower-left to balance the composition.
-            RadialGradient(
-                colors: [Color(hex: "#3A7CA5").opacity(scheme == .dark ? 0.12 : 0.05), .clear],
-                center: .init(x: 0.02, y: 1.0),
-                startRadius: 0,
-                endRadius: 420
+                endRadius: 400
             )
 
             // Hand-rendered film grain: adds tactile texture and hides gradient banding.

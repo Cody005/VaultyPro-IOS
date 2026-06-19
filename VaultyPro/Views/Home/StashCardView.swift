@@ -4,9 +4,9 @@ import SwiftUI
 /// are laid over a gradient scrim at the bottom for a premium magazine feel.
 struct StashCardView: View {
     let item: StashItem
+    var height: CGFloat = 236
 
     private let radius: CGFloat = 22
-    private let height: CGFloat = 236
 
     var body: some View {
         // A `.fill` image reports a size larger than its container and would push the
@@ -79,11 +79,19 @@ struct StashCardView: View {
     private var caption: some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(item.displayTitle)
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
                 .shadow(color: .black.opacity(0.4), radius: 4, y: 1)
+
+            if let desc = item.itemDescription, !desc.isEmpty, item.contentType != .note {
+                Text(desc)
+                    .font(.system(size: 12.5, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.78))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
 
             HStack(spacing: 6) {
                 FaviconView(urlString: item.faviconURL, platform: item.platform, size: 15)
@@ -91,16 +99,46 @@ struct StashCardView: View {
                 Text(item.sourceDomain ?? item.platform?.displayName ?? "Note")
                     .foregroundStyle(.white.opacity(0.88))
                     .lineLimit(1)
+                if let mins = item.estimatedReadTime, item.contentType == .article {
+                    metaDot
+                    Text("\(mins) min read")
+                        .foregroundStyle(Color.stashAmber)
+                        .layoutPriority(1)
+                }
                 Spacer(minLength: 4)
                 Text(item.savedAt.relativeShort)
                     .foregroundStyle(.white.opacity(0.62))
                     .layoutPriority(1)
             }
             .font(.system(size: 11.5, weight: .medium))
+
+            if !item.tags.isEmpty {
+                HStack(spacing: 5) {
+                    ForEach(item.tags.prefix(3), id: \.self) { tag in
+                        Text("#\(tag)")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.85))
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 2.5)
+                            .background(.white.opacity(0.14), in: Capsule())
+                    }
+                }
+            }
+
+            if item.contentType == .article && item.readingProgress > 0 && item.readingProgress < 1 {
+                ProgressView(value: item.readingProgress)
+                    .tint(Color.stashAmber)
+                    .scaleEffect(x: 1, y: 0.6, anchor: .center)
+                    .padding(.top, 1)
+            }
         }
         .padding(.horizontal, 13)
         .padding(.bottom, 13)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var metaDot: some View {
+        Text("·").foregroundStyle(.white.opacity(0.5))
     }
 
     private func badge<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {

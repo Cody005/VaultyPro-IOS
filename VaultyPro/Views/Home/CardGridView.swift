@@ -43,6 +43,7 @@ struct SwipeableCard<Content: View>: View {
     @Environment(\.modelContext) private var context
     @Environment(UndoCenter.self) private var undo
     @State private var offset: CGFloat = 0
+    @State private var isSwiping = false
 
     private let actionWidth: CGFloat = 78
 
@@ -61,6 +62,7 @@ struct SwipeableCard<Content: View>: View {
                 }
             }
             .frame(width: revealWidth)
+            .opacity(offset < 0 ? 1 : 0)
 
             content
                 .offset(x: offset)
@@ -91,9 +93,19 @@ struct SwipeableCard<Content: View>: View {
     }
 
     private var dragGesture: some Gesture {
-        DragGesture(minimumDistance: 18)
+        // A larger minimum distance plus a strong horizontal-dominance check makes the
+        // swipe deliberate: a tap or a near-vertical scroll never starts revealing the
+        // actions, so the card only opens on a clear, intentional left swipe.
+        DragGesture(minimumDistance: 28)
             .onChanged { value in
-                guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                let horizontal = abs(value.translation.width)
+                let vertical = abs(value.translation.height)
+                // Lock the gesture's axis on first qualifying movement. Require horizontal
+                // travel to clearly dominate (2.5x) before we treat it as a swipe.
+                if !isSwiping {
+                    guard horizontal > vertical * 2.5, horizontal > 12 else { return }
+                    isSwiping = true
+                }
                 if value.translation.width < 0 {
                     offset = max(value.translation.width, -revealWidth)
                 } else if offset < 0 {
@@ -101,8 +113,15 @@ struct SwipeableCard<Content: View>: View {
                 }
             }
             .onEnded { value in
-                withAnimation(.snappy(duration: 0.25)) {
-                    offset = value.translation.width < -revealWidth / 2 ? -revealWidth : 0
+                isSwiping = false
+                // Commit to open only when the swipe travels well past half the reveal
+                // width OR is flicked quickly; otherwise snap closed. This avoids the card
+                // popping open on small/accidental drags.
+                let traveled = value.translation.width
+                let velocity = value.predictedEndTranslation.width - value.translation.width
+                let shouldOpen = traveled < -(revealWidth * 0.62) || (traveled < -36 && velocity < -120)
+                withAnimation(.snappy(duration: 0.28)) {
+                    offset = shouldOpen ? -revealWidth : 0
                 }
             }
     }

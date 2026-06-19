@@ -80,6 +80,10 @@ struct ItemDetailView: View {
                 .frame(maxHeight: 420)
                 .background(Color.stashCardSurface)
                 .clipShape(RoundedRectangle(cornerRadius: AppMetrics.cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppMetrics.cornerRadius)
+                        .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
+                )
         case .audio:
             AudioBarView(item: item)
         case .article, .link, .note:
@@ -98,6 +102,10 @@ struct ItemDetailView: View {
             .frame(maxHeight: 380)
             .background(Color.stashCardSurface)
             .clipShape(RoundedRectangle(cornerRadius: AppMetrics.cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppMetrics.cornerRadius)
+                    .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
+            )
             .overlay {
                 if showPlay, let urlString = item.url, let url = URL(string: urlString) {
                     Button { openURL(url) } label: {
@@ -136,11 +144,13 @@ struct ItemDetailView: View {
                     Text("· \(m) min read").font(AppFont.metadata()).foregroundStyle(Color.stashAmber)
                 }
             }
-            if let desc = item.itemDescription, !isArticle, item.contentType != .note {
-                Text(desc).font(.system(size: 15)).foregroundStyle(.secondary)
+            if let desc = item.itemDescription, !desc.isEmpty, !isArticle, item.contentType != .note {
+                FormattedBody(text: desc, baseSize: 15.5, color: .primary.opacity(0.85))
+                    .padding(.top, 2)
             }
-            if item.contentType == .note, let body = item.itemDescription {
-                Text(body).font(.system(size: 17)).foregroundStyle(.primary).padding(.top, 4)
+            if item.contentType == .note, let body = item.itemDescription, !body.isEmpty {
+                FormattedBody(text: body, baseSize: 17, color: .primary)
+                    .padding(.top, 4)
             }
             if !item.tags.isEmpty {
                 FlowLayout(spacing: 6) {
@@ -291,5 +301,71 @@ struct ItemDetailView: View {
         .foregroundStyle(tint)
         .frame(maxWidth: .infinity)
         .frame(height: 38)
+    }
+}
+
+/// Renders an arbitrary fetched body/caption (from any platform) as readable, well-spaced
+/// content instead of one dense block: paragraphs are separated by blank lines, bullet
+/// markers are normalized, and short standalone lines read as section headings.
+struct FormattedBody: View {
+    let text: String
+    var baseSize: CGFloat = 15.5
+    var color: Color = .primary
+
+    private struct Block: Identifiable {
+        let id = UUID()
+        let lines: [String]
+        let isHeading: Bool
+    }
+
+    private var blocks: [Block] {
+        let normalized = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        // Collapse 3+ blank lines, then split into paragraphs on blank lines.
+        return normalized
+            .components(separatedBy: "\n\n")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .map { paragraph in
+                let rawLines = paragraph
+                    .components(separatedBy: "\n")
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                    .filter { !$0.isEmpty }
+                let lines = rawLines.map(Self.cleanLine)
+                let isHeading = lines.count == 1
+                    && lines[0].count <= 32
+                    && !lines[0].hasSuffix(".")
+                    && !lines[0].hasPrefix("•")
+                return Block(lines: lines, isHeading: isHeading)
+            }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            ForEach(blocks) { block in
+                if block.isHeading {
+                    Text(block.lines[0])
+                        .font(.system(size: baseSize + 2.5, weight: .bold))
+                        .foregroundStyle(color)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text(block.lines.joined(separator: "\n"))
+                        .font(.system(size: baseSize))
+                        .lineSpacing(4)
+                        .foregroundStyle(color)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    /// Normalizes common markdown-ish list markers to a clean bullet.
+    private static func cleanLine(_ line: String) -> String {
+        for prefix in ["* ", "- ", "• "] where line.hasPrefix(prefix) {
+            return "•  " + String(line.dropFirst(prefix.count))
+        }
+        return line
     }
 }
