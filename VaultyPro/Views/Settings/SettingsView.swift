@@ -240,7 +240,7 @@ struct SettingsView: View {
             HStack { Text("Version").font(.system(size: 14)); Spacer()
                 Text("1.0").foregroundStyle(.secondary).font(.system(size: 14)) }
             HStack { Text("Made with").font(.system(size: 14)); Spacer()
-                Text("SwiftUI · iOS 26").foregroundStyle(.secondary).font(.system(size: 14)) }
+                Text("Love & Passion by 🦄").font(.system(size: 14)) }
         }
     }
 

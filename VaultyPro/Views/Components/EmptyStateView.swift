@@ -12,19 +12,14 @@ struct EmptyStateView: View {
         VStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.stashAmber.opacity(0.35), .clear],
-                            center: .center, startRadius: 4, endRadius: 90
-                        )
-                    )
-                    .frame(width: 160, height: 160)
+                    .fill(Color.stashMuted.opacity(0.08))
+                    .frame(width: 120, height: 120)
+                Circle()
+                    .strokeBorder(Color.stashMuted.opacity(0.15), lineWidth: 1)
+                    .frame(width: 120, height: 120)
                 Image(systemName: icon)
-                    .font(.system(size: 64, weight: .regular))
-                    .foregroundStyle(
-                        LinearGradient(colors: [.stashAmber, .typeImage],
-                                       startPoint: .topLeading, endPoint: .bottomTrailing)
-                    )
+                    .font(.system(size: 44, weight: .light))
+                    .foregroundStyle(Color.secondary.opacity(0.7))
                     .symbolRenderingMode(.hierarchical)
             }
 

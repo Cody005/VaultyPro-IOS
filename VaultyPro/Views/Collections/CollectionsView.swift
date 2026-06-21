@@ -80,7 +80,7 @@ struct CollectionsView: View {
 
     @ViewBuilder
     private var vaultSection: some View {
-        if let vaultCol = vaultCollections.first {
+        if let vaultCol = vaultCollections.first, collections.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Vault")
                     .font(AppFont.sectionHeader())
@@ -170,6 +170,10 @@ struct CollectionsView: View {
                 )
             } else {
                 LazyVGrid(columns: grid, spacing: 14) {
+                    if let vaultCol = vaultCollections.first {
+                        vaultCard(vaultCol)
+                    }
+
                     ForEach(collections) { collection in
                         NavigationLink(value: CollectionTarget.user(collection)) {
                             CollectionCardView(
@@ -204,47 +208,94 @@ struct CollectionCardView: View {
     let covers: [StashItem]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            mosaic
-                .frame(height: 110)
-                .clipped()
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    Text(emoji)
-                    Text(name).font(.system(size: 15, weight: .semibold)).lineLimit(1)
-                }
-                Text("\(count) item\(count == 1 ? "" : "s")")
-                    .font(AppFont.metadata()).foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
+        ZStack(alignment: .bottomLeading) {
+            coverArtwork
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.14), .black.opacity(0.72)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            cardInfo
         }
+        .frame(height: 176)
         .background(Color.stashCardSurface)
-        .clipShape(RoundedRectangle(cornerRadius: AppMetrics.cornerRadius, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: AppMetrics.cornerRadius).strokeBorder(Color.primary.opacity(0.05)))
-        .shadow(color: .black.opacity(0.1), radius: 10, y: 3)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.16), radius: 18, x: 0, y: 10)
+    }
+
+    private var cardInfo: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 7) {
+                Text(emoji)
+                    .font(.system(size: 16))
+                Text(name)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+            }
+            Text("\(count) item\(count == 1 ? "" : "s")")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.white.opacity(0.68))
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var coverArtwork: some View {
+        GeometryReader { proxy in
+            if covers.isEmpty {
+                emptyArtwork
+            } else if covers.count == 1 {
+                coverCell(covers[0])
+            } else {
+                HStack(spacing: 3) {
+                    coverCell(covers[0])
+                        .frame(width: proxy.size.width * 0.66)
+                    VStack(spacing: 3) {
+                        previewCell(at: 1)
+                        previewCell(at: 2)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
+            }
+        }
+    }
+
+    private var emptyArtwork: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color(hex: colorHex).opacity(0.34), Color.stashCardSurface.opacity(0.92)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            Circle()
+                .fill(.white.opacity(0.08))
+                .frame(width: 72, height: 72)
+            Text(emoji)
+                .font(.system(size: 34))
+        }
     }
 
     @ViewBuilder
-    private var mosaic: some View {
-        if covers.isEmpty {
-            LinearGradient(colors: [Color(hex: colorHex), Color(hex: colorHex).opacity(0.5)],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
-                .overlay(Text(emoji).font(.system(size: 40)))
+    private func previewCell(at index: Int) -> some View {
+        if index < covers.count {
+            coverCell(covers[index])
         } else {
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 1), GridItem(.flexible(), spacing: 1)], spacing: 1) {
-                ForEach(0..<4, id: \.self) { index in
-                    if index < covers.count {
-                        ThumbnailView(data: covers[index].thumbnailData,
-                                      urlString: covers[index].thumbnailURL,
-                                      contentType: covers[index].contentType)
-                            .frame(height: 54).clipped()
-                    } else {
-                        Color(hex: colorHex).opacity(0.3).frame(height: 54)
-                    }
-                }
-            }
+            Color(hex: colorHex).opacity(0.18)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+
+    private func coverCell(_ item: StashItem) -> some View {
+        ThumbnailView(data: item.thumbnailData,
+                      urlString: item.thumbnailURL,
+                      contentType: item.contentType)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -256,46 +307,65 @@ struct VaultCollectionCardView: View {
     let itemCount: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack {
-                LinearGradient(
-                    colors: [Color(hex: "#4A1D96"), Color(hex: "#2D1B69")],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                )
-                Image(systemName: isLocked ? "lock.fill" : "lock.open.fill")
-                    .font(.system(size: 40, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.95))
-            }
-            .frame(height: 110)
-            .frame(maxWidth: .infinity)
-            .clipped()
-            .overlay(alignment: .topTrailing) {
-                if !isSetup {
-                    Text("Set up")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color.stashNavy)
-                        .padding(.horizontal, 8).padding(.vertical, 3)
-                        .background(Color.stashAmber, in: Capsule())
-                        .padding(8)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
+        ZStack(alignment: .bottomLeading) {
+            vaultArtwork
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.12), .black.opacity(0.74)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 7) {
                     Text("🔒")
-                    Text("Vault").font(.system(size: 15, weight: .semibold)).lineLimit(1)
+                        .font(.system(size: 16))
+                    Text("Vault")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
                 }
                 Text(isLocked
                      ? (isSetup ? "Tap to unlock" : "Tap to set up")
                      : "\(itemCount) private item\(itemCount == 1 ? "" : "s")")
-                    .font(AppFont.metadata()).foregroundStyle(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.68))
             }
+            .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
         }
+        .frame(height: 176)
         .background(Color.stashCardSurface)
-        .clipShape(RoundedRectangle(cornerRadius: AppMetrics.cornerRadius, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: AppMetrics.cornerRadius).strokeBorder(Color.primary.opacity(0.05)))
-        .shadow(color: .black.opacity(0.1), radius: 10, y: 3)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+        )
+        .overlay(alignment: .topTrailing) {
+            if !isSetup {
+                Text("Set up")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.stashNavy)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(Color.stashAmber, in: Capsule())
+                    .padding(10)
+            }
+        }
+        .shadow(color: .black.opacity(0.16), radius: 18, x: 0, y: 10)
+    }
+
+    private var vaultArtwork: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color(hex: "#4A1D96"), Color(hex: "#162238")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            Circle()
+                .fill(.white.opacity(0.08))
+                .frame(width: 74, height: 74)
+            Image(systemName: isLocked ? "lock.fill" : "lock.open.fill")
+                .font(.system(size: 34, weight: .medium))
+                .foregroundStyle(.white.opacity(0.86))
+        }
     }
 }
